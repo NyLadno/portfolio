@@ -1,0 +1,394 @@
+---
+// Сетка активности строится только из реальных дат коммитов (src/data/github.snapshot.json).
+import snapshot from "../data/github.snapshot.json";
+import { dottedDate, shortDate } from "../lib/typo";
+
+const repoMeta: Record<string, { title: string; anchor: string; lang: "go" | "python" }> = {
+  yandex_lyceum_self_paced_go: { title: "Yandex Lyceum — Go", anchor: "#project-01", lang: "go" },
+  "Finding-a-vacancy-for-an-internship-bot": { title: "Internship Tracker Bot", anchor: "#project-02", lang: "go" },
+  tradebot: { title: "TradeBot", anchor: "#project-03", lang: "python" },
+};
+
+const dayKey = (iso: string) =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Moscow", year: "numeric", month: "2-digit", day: "2-digit" }).format(
+    new Date(iso),
+  );
+
+// день → { count, repos }
+const days = new Map<string, { count: number; repos: Set<string> }>();
+for (const repo of snapshot.repos) {
+  for (const c of repo.commits) {
+    const k = dayKey(c);
+    const d = days.get(k) ?? { count: 0, repos: new Set<string>() };
+    d.count++;
+    d.repos.add(repo.name);
+    days.set(k, d);
+  }
+}
+
+const allDates = snapshot.repos.flatMap((r) => r.commits).sort();
+const toUTC = (k: string) => new Date(`${k}T00:00:00Z`);
+const first = toUTC(dayKey(allDates[0]));
+const last = toUTC(dayKey(snapshot.fetchedAt));
+// начинаем с понедельника недели первого коммита
+const start = new Date(first);
+start.setUTCDate(start.getUTCDate() - ((start.getUTCDay() + 6) % 7));
+
+const MONTHS = ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
+type Cell = { key: string; count: number; lang?: "go" | "python"; title?: string; future: boolean };
+const weeks: Cell[][] = [];
+for (let d = new Date(start); d <= last || (weeks.at(-1)?.length ?? 7) < 7; d.setUTCDate(d.getUTCDate() + 1)) {
+  const weekday = (d.getUTCDay() + 6) % 7;
+  if (weekday === 0) weeks.push([]);
+  const key = d.toISOString().slice(0, 10);
+  const info = days.get(key);
+  const repoName = info ? [...info.repos][0] : undefined;
+  weeks.at(-1)!.push({
+    key,
+    count: info?.count ?? 0,
+    lang: repoName ? repoMeta[repoName]?.lang : undefined,
+    title: info
+      ? `${shortDate(`${key}T12:00:00Z`)} — ${info.count} ${plural(info.count)} · ${[...info.repos].map((r) => repoMeta[r]?.title ?? r).join(", ")}`
+      : undefined,
+    future: d > last,
+  });
+}
+
+// Сжимаем долгие периоды без коммитов в один столбец-разрыв: сетка плотнее, но ни одна дата не выдумана.
+type Column =
+  | { kind: "week"; cells: Cell[]; label?: string }
+  | { kind: "break"; weeks: number; title: string };
+const active = weeks.map((w) => w.some((c) => c.count > 0));
+const keep = weeks.map((_, i) => active.slice(Math.max(0, i - 1), i + 2).some(Boolean) || i === weeks.length - 1);
+const columns: Column[] = [];
+for (let i = 0; i < weeks.length; ) {
+  if (keep[i]) {
+    columns.push({ kind: "week", cells: weeks[i] });
+    i++;
+    continue;
+  }
+  let j = i;
+  while (j < weeks.length && !keep[j]) j++;
+  const from = weeks[i][0].key;
+  const to = weeks[j - 1][6].key;
+  columns.push({
+    kind: "break",
+    weeks: j - i,
+    title: `${shortDate(`${from}T12:00:00Z`)} — ${shortDate(`${to}T12:00:00Z`)}: ${j - i} нед. без публичных коммитов`,
+  });
+  i = j;
+}
+// подписи месяцев: на неделе с 1-м числом или на первой неделе после разрыва
+const colLabels: { col: number; label: string }[] = [];
+columns.forEach((c, idx) => {
+  if (c.kind !== "week") return;
+  const firstOfMonth = c.cells.find((cell) => cell.key.endsWith("-01"));
+  const afterBreak = idx === 0 || columns[idx - 1].kind === "break";
+  const ref = firstOfMonth ?? (afterBreak ? c.cells[0] : undefined);
+  if (!ref) return;
+  const d = new Date(`${ref.key}T12:00:00Z`);
+  const withYear = d.getUTCMonth() === 0 || !colLabels.length;
+  const label = MONTHS[d.getUTCMonth()] + (withYear ? ` ${d.getUTCFullYear()}` : "");
+  if (colLabels.length && idx + 1 - colLabels.at(-1)!.col < 3) return;
+  colLabels.push({ col: idx + 1, label });
+});
+const totalCommits = snapshot.repos.reduce((n, r) => n + r.commits.length, 0);
+
+function plural(n: number) {
+  const m10 = n % 10;
+  const m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return "коммит";
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return "коммита";
+  return "коммитов";
+}
+const level = (n: number) => (n >= 4 ? 3 : n >= 2 ? 2 : 1);
+
+const legend = snapshot.repos.map((r) => {
+  const firstC = r.commits[0];
+  const lastC = r.commits.at(-1)!;
+  const same = dayKey(firstC) === dayKey(lastC);
+  return {
+    ...repoMeta[r.name],
+    name: r.name,
+    url: r.url,
+    language: r.language,
+    period: same ? shortDate(firstC) : `${shortDate(firstC)} — ${shortDate(lastC)}`,
+  };
+});
+const summary = legend.map((l) => `${l.title} (${l.language}): ${l.period}`).join("; ");
+---
+<div class="activity">
+  <div class="activity__intro">
+    <h3 class="activity__title">Три публичных репозитория</h3>
+    <ul class="activity__legend">
+      {legend.map((l) => (
+        <li>
+          <span class:list={["swatch", `swatch--${l.lang}`]} aria-hidden="true"></span>
+          <a href={l.anchor}>{l.title}</a>
+          <span class="activity__meta">{l.language} · {l.period}</span>
+        </li>
+      ))}
+    </ul>
+    <p class="activity__source">Данные GitHub API на {dottedDate(snapshot.fetchedAt)}</p>
+  </div>
+
+  <figure class="activity__chart">
+    <figcaption class="visually-hidden">Дни с коммитами по неделям. {summary}.</figcaption>
+    <div class="grid-wrap" style={`--weeks:${columns.length}`}>
+      <div class="months" aria-hidden="true">
+        {colLabels.map((m) => <span style={`grid-column:${m.col}`}>{m.label}</span>)}
+      </div>
+      <div
+        class="cells"
+        data-snake-grid
+        data-cols={columns.length}
+        data-total={totalCommits}
+        role="button"
+        tabindex="0"
+        aria-label="Сыграть в змейку: собрать коммиты на этой сетке"
+      >
+        {columns.map((col, x) =>
+          col.kind === "week"
+            ? col.cells.map((c, y) => (
+                <span
+                  class:list={["cell", c.lang && `cell--${c.lang}`, c.count && `lvl-${level(c.count)}`, c.future && "cell--future"]}
+                  data-x={x}
+                  data-y={y}
+                  data-commits={c.count || undefined}
+                  title={c.title}
+                />
+              ))
+            : Array.from({ length: 7 }, (_, y) => (
+                <span class="cell cell--break" data-x={x} data-y={y} title={col.title} />
+              )),
+        )}
+      </div>
+      <div class="days" aria-hidden="true">
+        <span style="grid-row:1">пн</span>
+        <span style="grid-row:4">чт</span>
+        <span style="grid-row:7">вс</span>
+      </div>
+    </div>
+    <div class="activity__keys">
+      <span aria-hidden="true"><span class="swatch swatch--go"></span>Go</span>
+      <span aria-hidden="true"><span class="swatch swatch--python"></span>Python</span>
+      <span class="snake-hint" data-snake-hint>Нажмите на сетку — это змейка</span>
+    </div>
+    <p class="snake-status" data-snake-status aria-live="polite" hidden></p>
+  </figure>
+</div>
+
+<style>
+  .activity {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--col-gap);
+    row-gap: 32px;
+    padding-bottom: clamp(56px, 7vw, 96px);
+    margin-bottom: clamp(56px, 7vw, 96px);
+    border-bottom: 1px solid var(--rule);
+  }
+  .activity__intro {
+    grid-column: 1 / span 4;
+  }
+  .activity__chart {
+    grid-column: 5 / -1;
+    min-width: 0;
+  }
+  .activity__title {
+    font-size: var(--fs-h3);
+    letter-spacing: -0.02em;
+  }
+  .activity__legend {
+    margin-top: 20px;
+    display: grid;
+    gap: 12px;
+  }
+  .activity__legend li {
+    display: grid;
+    grid-template-columns: 12px 1fr;
+    column-gap: 12px;
+    align-items: baseline;
+  }
+  .activity__legend a {
+    font-weight: 650;
+    text-decoration: none;
+    background: linear-gradient(currentColor, currentColor) 0 100% / 0 1.5px no-repeat;
+    transition: background-size 0.3s var(--ease-out);
+    justify-self: start;
+  }
+  .activity__legend a:hover {
+    background-size: 100% 1.5px;
+  }
+  .activity__meta {
+    grid-column: 2;
+    color: var(--graphite);
+    font-size: 13.5px;
+  }
+  .activity__source {
+    margin-top: 24px;
+    color: var(--graphite);
+    font-size: 12.5px;
+  }
+  .swatch {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    translate: 0 1px;
+  }
+  .swatch--go {
+    background: var(--juice);
+  }
+  .swatch--python {
+    background: var(--ink);
+  }
+
+  .grid-wrap {
+    max-width: calc(var(--weeks) * 30px + 28px);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    column-gap: 8px;
+    row-gap: 6px;
+  }
+  .months,
+  .cells {
+    grid-column: 2;
+    display: grid;
+    grid-template-columns: repeat(var(--weeks), minmax(0, 1fr));
+    column-gap: clamp(2px, 0.3vw, 4px);
+  }
+  .months {
+    grid-row: 1;
+    font-size: 11.5px;
+    color: var(--graphite);
+    white-space: nowrap;
+  }
+  .cells {
+    grid-row: 2;
+    grid-template-rows: repeat(7, auto);
+    grid-auto-flow: column;
+    row-gap: clamp(2px, 0.3vw, 4px);
+  }
+  .days {
+    grid-column: 1;
+    grid-row: 2;
+    display: grid;
+    grid-template-rows: repeat(7, 1fr);
+    font-size: 11px;
+    color: var(--graphite);
+    align-items: center;
+  }
+  .cell {
+    aspect-ratio: 1;
+    border-radius: 2px;
+    background: var(--paper-3);
+  }
+  .cell--future {
+    background: transparent;
+    outline: 1px dashed var(--rule);
+    outline-offset: -1px;
+  }
+  .cell--go {
+    background: var(--juice);
+  }
+  .cell--python {
+    background: var(--ink);
+  }
+  .lvl-1 {
+    opacity: 0.5;
+  }
+  .lvl-2 {
+    opacity: 0.78;
+  }
+  .activity__keys {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 20px;
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--graphite);
+  }
+  .activity__keys > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .cell--break {
+    background: repeating-linear-gradient(180deg, var(--rule-strong) 0 3px, transparent 3px 6px) center / 1.5px 100% no-repeat;
+  }
+
+  /* ---------- змейка ---------- */
+  .snake-hint {
+    margin-left: auto;
+    font-size: 13px;
+    color: var(--graphite);
+  }
+  .cells[data-snake-grid] {
+    cursor: pointer;
+    border-radius: 4px;
+    outline-offset: 6px;
+    transition: transform 0.25s var(--ease-out);
+  }
+  .cells[data-snake-grid]:not(.is-playing):hover {
+    transform: translateY(-2px);
+  }
+  .cells[data-snake-grid]:not(.is-playing):hover .cell:not([data-commits]):not(.cell--break):not(.cell--future) {
+    background: var(--rule-strong);
+  }
+  .cells.is-playing {
+    cursor: default;
+  }
+  .snake-status {
+    margin-top: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .snake-status[hidden] {
+    display: none;
+  }
+  .cells.is-playing .cell {
+    transition: background-color 0.08s linear;
+  }
+  .cells.is-playing .cell:not([data-commits]):not(.is-snake) {
+    opacity: 0.55;
+  }
+  .cells .cell.is-eaten {
+    background: var(--paper-3);
+    opacity: 0.35;
+  }
+  .cells .cell.is-snake {
+    background: var(--paper);
+    box-shadow: inset 0 0 0 2px var(--juice);
+    opacity: 1;
+    border-radius: 4px;
+  }
+  .cells .cell.is-head {
+    background: var(--juice);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--juice) 35%, transparent);
+  }
+  .cells.is-over .cell.is-snake {
+    background: var(--paper);
+    box-shadow: inset 0 0 0 2px var(--graphite);
+  }
+
+  @media (max-width: 960px) {
+    .activity__intro,
+    .activity__chart {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (max-width: 520px) {
+    .snake-hint {
+      margin-left: 0;
+    }
+  }
+</style>
+
+<script>
+  import "../scripts/snake";
+</script>

@@ -1,0 +1,258 @@
+---
+import { repos, file, tradebotSources, tradebotSteps, tradebotOutputs, tradebotFeatures } from "../data/site";
+import { typo } from "../lib/typo";
+import Arrow from "./Arrow.astro";
+import Logo from "./Logo.astro";
+---
+<article id="project-03" class="project tradebot" aria-labelledby="p3-title">
+  <figure class="tradebot__visual">
+    <div class="panel panel--lift pipe">
+      <figcaption class="visually-hidden">
+        Конвейер TradeBot: восемь источников новостей, сбор, фильтр и дедупликация, оценка риска LLM, база данных, затем
+        уведомление в Telegram или сигнал торговому движку.
+      </figcaption>
+      <div class="pipe__sources">
+        <p class="pipe__label">Новости · {tradebotSources.length} источников</p>
+        <ul class="pipe__chips">
+          {tradebotSources.map((s) => <li>{s}</li>)}
+        </ul>
+      </div>
+      <div class="pipe__funnel" aria-hidden="true"></div>
+      <ol class="pipe__steps">
+        {tradebotSteps.map((s, i) => (
+          <li class:list={["pipe__step", i === 2 && "pipe__step--llm"]}>
+            <a href={s.href} target="_blank" rel="noopener">
+              <span class="pipe__step-title">{s.title}</span>
+              <span class="pipe__step-sub">{typo(s.sub)}</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+      <div class="pipe__fork" aria-hidden="true"></div>
+      <ul class="pipe__outs">
+        {tradebotOutputs.map((o) => (
+          <li class="pipe__out">
+            <span class="pipe__step-title">{o.title}</span>
+            <span class="pipe__step-sub">{typo(o.sub)}</span>
+          </li>
+        ))}
+      </ul>
+      <p class="pipe__formula mono">
+        RiskScore = (R/10)·C·(0.35S + 0.40M + 0.25U)·e<sup>−λ(M)·τ</sup>, порог 6.0
+      </p>
+    </div>
+    <figcaption class="project__hint">
+      asyncio · httpx · tenacity · APScheduler · <a href={file(repos.tradebot, "app/llm/evaluator.py")} target="_blank" rel="noopener">evaluator.py</a>
+    </figcaption>
+  </figure>
+
+  <div class="tradebot__text">
+    <p class="project__num">03</p>
+    <h3 id="p3-title" class="project__title">TradeBot</h3>
+    <p class="project__desc">
+      {typo("Side-проект на Python. Асинхронный конвейер собирает новости об эмитенте из восьми источников, LLM оценивает риск каждой новости, и если риск высокий — торговля блокируется, а в Telegram уходит одно уведомление.")}
+    </p>
+    <p class="project__desc tradebot__muted">
+      {typo("Вторая половина — движок парного арбитража TATN/TATNP через WebSocket брокера и оффлайн-исследование стратегии.")}
+    </p>
+    <ul class="tradebot__features" aria-label="Инженерные решения">
+      {tradebotFeatures.map((f) => <li>{f}</li>)}
+    </ul>
+    <ul class="tags" aria-label="Технологии">
+      <li class="tag"><Logo slug="python" />Python</li>
+      <li class="tag"><Logo slug="fastapi" />FastAPI</li>
+      <li class="tag"><Logo slug="supabase" />Supabase</li>
+      <li class="tag"><Logo slug="googlegemini" />LLM</li>
+      <li class="tag">Async</li>
+      <li class="tag">Trading</li>
+      <li class="tag">Research</li>
+    </ul>
+    <div class="project__foot">
+      <a class="link-arrow" href={repos.tradebot} target="_blank" rel="noopener">Репозиторий <Arrow /></a>
+      <p class="project__meta"><span><b>июл — авг 2026</b></span><span>FastAPI · Supabase · Gemini</span></p>
+    </div>
+  </div>
+</article>
+
+<style>
+  .tradebot__visual {
+    grid-column: 1 / span 7;
+    grid-row: 1;
+    min-width: 0;
+  }
+  .tradebot__text {
+    grid-column: 9 / -1;
+    grid-row: 1;
+    align-self: start;
+  }
+  .tradebot__muted {
+    color: var(--graphite);
+  }
+
+  .pipe {
+    padding: clamp(20px, 2.6vw, 32px);
+    background: var(--paper-2);
+  }
+  .pipe__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--graphite);
+  }
+  .pipe__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .pipe__chips li {
+    padding: 5px 9px;
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--r-chip);
+    background: var(--paper);
+    font-size: 13px;
+    font-weight: 560;
+    line-height: 1.2;
+  }
+  /* воронка: несколько линий сходятся в одну */
+  .pipe__funnel {
+    height: 40px;
+    margin-inline: 12%;
+    background:
+      linear-gradient(to bottom left, transparent calc(50% - 0.75px), var(--ink) calc(50% - 0.75px) calc(50% + 0.75px), transparent calc(50% + 0.75px)) left / 50% 100% no-repeat,
+      linear-gradient(to bottom right, transparent calc(50% - 0.75px), var(--ink) calc(50% - 0.75px) calc(50% + 0.75px), transparent calc(50% + 0.75px)) right / 50% 100% no-repeat;
+  }
+  .pipe__steps {
+    display: grid;
+    gap: 22px;
+    max-width: 440px;
+    margin-inline: auto;
+  }
+  .pipe__step {
+    position: relative;
+  }
+  .pipe__step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: calc(100% + 1px);
+    width: 10px;
+    height: 20px;
+    translate: -50% 0;
+    background:
+      linear-gradient(var(--ink), var(--ink)) center top / 1.5px calc(100% - 6px) no-repeat,
+      conic-gradient(from 135deg at 50% 100%, var(--ink) 0 90deg, transparent 0) center bottom / 10px 6px no-repeat;
+  }
+  .pipe__step a,
+  .pipe__out {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 12px 16px;
+    border: 1.5px solid var(--ink);
+    border-radius: var(--r-node);
+    background: var(--paper);
+    text-decoration: none;
+    transition:
+      background-color 0.2s ease,
+      transform 0.25s var(--ease-out);
+  }
+  .pipe__step a:hover {
+    transform: translateX(4px);
+  }
+  .pipe__step--llm a {
+    background: var(--juice);
+    border-color: var(--juice);
+    color: var(--on-juice);
+  }
+  .pipe__step--llm .pipe__step-sub {
+    color: var(--on-juice);
+    opacity: 0.8;
+  }
+  .pipe__step-title {
+    font-weight: 700;
+    font-size: 15.5px;
+  }
+  .pipe__step-sub {
+    font-size: 13px;
+    color: var(--graphite);
+    line-height: 1.35;
+  }
+  /* развилка: из одной линии в две */
+  .pipe__fork {
+    position: relative;
+    height: 34px;
+    margin-inline: 25%;
+    background:
+      linear-gradient(var(--ink), var(--ink)) center top / 1.5px 50% no-repeat,
+      linear-gradient(var(--ink), var(--ink)) center / 100% 1.5px no-repeat,
+      linear-gradient(var(--ink), var(--ink)) left bottom / 1.5px 50% no-repeat,
+      linear-gradient(var(--ink), var(--ink)) right bottom / 1.5px 50% no-repeat;
+  }
+  .pipe__outs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .pipe__out {
+    border-style: dashed;
+  }
+  .pipe__formula {
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule-strong);
+    font-size: 12px;
+    color: var(--graphite);
+    overflow-wrap: anywhere;
+  }
+  .tradebot__features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin-top: 24px;
+    border-top: 1.5px solid var(--ink);
+  }
+  .tradebot__features li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--rule);
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .tradebot__features li::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    background: var(--juice);
+    border-radius: 1px;
+    flex: none;
+  }
+  .tradebot :global(.project__hint a) {
+    color: inherit;
+  }
+
+  @media (max-width: 1080px) {
+    .tradebot__visual,
+    .tradebot__text {
+      grid-column: 1 / -1;
+      grid-row: auto;
+    }
+    .tradebot__text {
+      order: -1;
+    }
+  }
+  @media (max-width: 520px) {
+    .pipe__outs {
+      grid-template-columns: 1fr;
+    }
+    .pipe__fork {
+      display: none;
+    }
+    .pipe__steps {
+      margin-bottom: 22px;
+    }
+    .tradebot__features {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

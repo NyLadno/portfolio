@@ -1,0 +1,93 @@
+/* Шрифты — сабсеты из fonts/*.zip (tools/prepare_assets.py) */
+@font-face {
+  font-family: "Moderustic";
+  src: url("/fonts/moderustic-var.woff2") format("woff2");
+  font-weight: 300 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Dela Gothic One";
+  src: url("/fonts/dela-gothic-one.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+/* Метрические фолбэки, чтобы подмена шрифта не сдвигала вёрстку */
+@font-face {
+  font-family: "Moderustic Fallback";
+  src: local("Arial"), local("Helvetica Neue"), local("Helvetica");
+  size-adjust: 104%;
+  ascent-override: 96%;
+  descent-override: 24%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Dela Fallback";
+  src: local("Arial Black"), local("Arial Bold"), local("Arial");
+  size-adjust: 104%;
+  ascent-override: 112%;
+  descent-override: 28%;
+  line-gap-override: 0%;
+}
+
+:root {
+  --font-sans: "Moderustic", "Moderustic Fallback", system-ui, sans-serif;
+  --font-display: "Dela Gothic One", "Dela Fallback", "Arial Black", sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+
+  /* шкала */
+  --fs-hero: clamp(50px, 19.5vw, 176px);
+  --fs-h2: clamp(36px, 5.2vw, 72px);
+  --fs-h3: clamp(21px, 2vw, 28px);
+  --fs-lead: clamp(18px, 1.55vw, 22px);
+  --fs-body: 17px;
+  --fs-small: 15px;
+  --fs-label: 13.5px;
+  --fs-mono: 13px;
+
+  /* сетка */
+  --max: 1360px;
+  --gutter: clamp(16px, 4vw, 56px);
+  --col-gap: clamp(12px, 2vw, 24px);
+  --section-pad: clamp(88px, 12vw, 176px);
+
+  /* радиусы по иерархии */
+  --r-chip: 2px;
+  --r-node: 6px;
+  --r-card: 6px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* light */
+  --paper: #f2f1ed;
+  --paper-2: #e8e6e0;
+  --paper-3: #dddad2;
+  --ink: #151412;
+  --graphite: #66635c;
+  --rule: #d6d3cb;
+  --rule-strong: #b9b5ab;
+  --juice: #ff6b1a;
+  --juice-ink: #a23a06;
+  --on-juice: #151412;
+  --shadow: 0 1px 0 rgb(21 20 18 / 0.04), 0 18px 40px -22px rgb(21 20 18 / 0.28);
+  --body-weight: 400;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --paper: #141412;
+  --paper-2: #1c1c19;
+  --paper-3: #262622;
+  --ink: #eeede8;
+  --graphite: #9c9a92;
+  --rule: #302f2b;
+  --rule-strong: #4a4843;
+  --juice: #ff7a2e;
+  --juice-ink: #ff8a45;
+  --on-juice: #141412;
+  --shadow: 0 1px 0 rgb(255 255 255 / 0.03), 0 22px 44px -24px rgb(0 0 0 / 0.7);
+  --body-weight: 370;
+  color-scheme: dark;
+}

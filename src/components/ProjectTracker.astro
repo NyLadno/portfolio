@@ -1,0 +1,632 @@
+---
+import { repos, trackerNodes, trackerCounters } from "../data/site";
+import { typo } from "../lib/typo";
+import { highlight } from "../lib/highlight";
+import Arrow from "./Arrow.astro";
+import Logo from "./Logo.astro";
+
+const byId = Object.fromEntries(trackerNodes.map((n) => [n.id, n]));
+// порядок узлов в DOM = порядок чтения на мобильном
+const order = ["source", "fetch", "parse", "filter", "details", "store", "api", "bot", "user"] as const;
+const badges: Record<string, string> = { api: "go func()", bot: "go bot.Start()" };
+const DEFAULT = "filter";
+const panels = [...order, "docker"].map((id) => byId[id]);
+---
+<article id="project-02" class="project tracker" aria-labelledby="p2-title">
+  <div class="tracker__head">
+    <p class="project__num">02</p>
+    <h3 id="p2-title" class="project__title">Internship Tracker Bot</h3>
+  </div>
+  <div class="tracker__text">
+    <p class="project__desc tracker__lead">
+      {typo("Вместо того чтобы каждый день обновлять сайт с вакансиями, я написал сервис на Go, который делает это сам: раз в час забирает страницу, оставляет только Go-стажировки, достаёт описание, сохраняет в SQLite без дублей и присылает новое в Telegram.")}
+    </p>
+  </div>
+  <div class="tracker__side">
+    <p class="project__desc">{typo("Через него я и нахожу вакансии, на которые откликаюсь. Управлять базой можно из Telegram или напрямую через REST API.")}</p>
+    <ul class="tags" aria-label="Технологии">
+      <li class="tag"><Logo slug="go" />Go</li>
+      <li class="tag">REST API</li>
+      <li class="tag"><Logo slug="sqlite" />SQLite</li>
+      <li class="tag"><Logo slug="telegram" />Telegram</li>
+      <li class="tag"><Logo slug="docker" />Docker</li>
+    </ul>
+    <div class="project__foot">
+      <a class="link-arrow" href={repos.tracker} target="_blank" rel="noopener">Репозиторий <Arrow /></a>
+      <p class="project__meta"><span><b>сен 2026</b></span><span>Go 1.27 · 6 файлов .go + schema.sql</span></p>
+    </div>
+  </div>
+
+  <ul class="counters" aria-label="Цифры из кода">
+    {trackerCounters.map((c) => (
+      <li class="counter">
+        <span class="counter__value num">
+          <span data-count={c.value}>{c.value}</span>{c.unit && <span class="counter__unit">{c.unit}</span>}
+        </span>
+        <span class="counter__label">{typo(c.label)}</span>
+      </li>
+    ))}
+  </ul>
+
+  <figure class="td" data-td data-active={DEFAULT}>
+    <div class="td__head">
+      <figcaption>
+        <span class="td__title">Путь одной вакансии</span>
+        <span class="td__hint">{typo("Выберите узел, чтобы увидеть его код")}</span>
+      </figcaption>
+      <button class="icon-btn td__replay" type="button" data-td-replay aria-label="Прогнать вакансию по схеме" title="Прогнать вакансию">
+        <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M16 10a6 6 0 1 1-1.8-4.3M16.2 3.2v3.4h-3.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" /></svg>
+      </button>
+    </div>
+
+    <div class="td__grid">
+      <div class="td__frame">
+        <button type="button" class="td__frame-tag" data-node="docker" aria-pressed="false" aria-controls="td-inspector">
+          <Logo slug="docker" />Docker · один статический бинарник
+        </button>
+      </div>
+      {order.map((id, i) => {
+        const n = byId[id];
+        return (
+          <button
+            type="button"
+            class:list={["td__node", `td__node--${id}`]}
+            data-node={id}
+            style={`--n:${i + 1}`}
+            aria-pressed={id === DEFAULT ? "true" : "false"}
+            aria-controls="td-inspector"
+          >
+            {badges[id] && <span class="td__badge mono">{badges[id]}</span>}
+            <span class="td__node-title">{n.title}</span>
+            <span class="td__node-sub mono">{n.sub}</span>
+          </button>
+        );
+      })}
+      <span class="td__wire td__wire--push" data-wire="push" aria-hidden="true"><span>push</span></span>
+      <span class="td__wire td__wire--sql" data-wire="sql" aria-hidden="true"><span>SQL</span></span>
+      <span class="td__wire td__wire--user" data-wire="user" aria-hidden="true"><span>кнопки и уведомления</span></span>
+      <span class="td__wire td__wire--http" data-wire="http" aria-hidden="true"><span>HTTP</span></span>
+      <p class="td__main mono" aria-hidden="true">main: checkInternships() — сразу при старте, потом раз в час</p>
+    </div>
+
+    <div class="td__inspector" id="td-inspector" aria-live="polite">
+      {panels.map((p) => (
+        <div class="td__panel" data-panel={p.id} hidden={p.id !== DEFAULT}>
+          <div class="td__info">
+            <p class="td__panel-title">{p.title}</p>
+            <p class="td__panel-text">{typo(p.text)}</p>
+            {p.samples && (
+              <ul class="td__samples" aria-label="Примеры заголовков">
+                {p.samples.map((s) => (
+                  <li class:list={["td__sample", s.pass ? "is-pass" : "is-fail"]}>
+                    <span class="td__sample-mark" aria-hidden="true">{s.pass ? "✓" : "✕"}</span>
+                    <span>{s.title}</span>
+                    <span class="td__sample-why">{s.pass ? "проходит" : "отсеян"}: {s.why}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {p.file && (
+              <a class="link-arrow td__file" href={p.file.href} target="_blank" rel="noopener">
+                {p.file.label} <Arrow />
+              </a>
+            )}
+          </div>
+          {p.code && <pre class="td__code"><code set:html={highlight(p.code)} /></pre>}
+        </div>
+      ))}
+    </div>
+  </figure>
+</article>
+
+<style>
+  .tracker__head {
+    grid-column: 1 / -1;
+  }
+  .tracker__head .project__title {
+    font-size: clamp(40px, 6.4vw, 96px);
+    letter-spacing: -0.045em;
+  }
+  .tracker__text {
+    grid-column: 1 / span 6;
+  }
+  .tracker__lead {
+    margin-top: 0;
+    font-size: var(--fs-lead);
+    line-height: 1.45;
+    max-width: 40ch;
+  }
+  .tracker__side {
+    grid-column: 8 / -1;
+  }
+  .tracker__side > .project__desc:first-child {
+    margin-top: 0;
+    color: var(--graphite);
+  }
+
+  /* ---------- счётчики ---------- */
+  .counters {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    column-gap: var(--col-gap);
+    row-gap: 32px;
+    margin-top: clamp(16px, 3vw, 40px);
+  }
+  .counter {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1.5px solid var(--ink);
+  }
+  .counter__value {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: clamp(56px, 7.4vw, 112px);
+  }
+  .counter__unit {
+    font-family: var(--font-sans);
+    font-size: 0.24em;
+    font-weight: 700;
+    letter-spacing: 0;
+    color: var(--graphite);
+  }
+  .counter__label {
+    max-width: 22ch;
+    font-size: 15px;
+    color: var(--graphite);
+  }
+
+  /* ---------- схема ---------- */
+  .td {
+    grid-column: 1 / -1;
+    margin-top: clamp(24px, 4vw, 56px);
+    border: 1.5px solid var(--ink);
+    border-radius: var(--r-card);
+    background: var(--paper-2);
+    overflow: hidden;
+  }
+  .td__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 24px;
+    padding: 18px clamp(18px, 2.4vw, 32px);
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .td__head figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 16px;
+  }
+  .td__title {
+    font-weight: 700;
+    font-size: 18px;
+  }
+  .td__hint {
+    font-size: 14px;
+    color: var(--graphite);
+  }
+
+  .td__grid {
+    --gap: clamp(28px, 3vw, 44px);
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-rows: auto 84px auto;
+    column-gap: var(--gap);
+    padding: 76px clamp(18px, 2.4vw, 32px) 48px;
+  }
+  .td__node {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: 5px;
+    min-height: 92px;
+    padding: 12px 12px 13px;
+    border: 1.5px solid var(--ink);
+    border-radius: var(--r-node);
+    background: var(--paper);
+    color: var(--ink);
+    text-align: left;
+    transition:
+      background-color 0.25s ease,
+      border-color 0.25s ease,
+      box-shadow 0.3s var(--ease-out),
+      transform 0.3s var(--ease-out);
+  }
+  .td__node:hover {
+    transform: translateY(-3px);
+  }
+  .td__node[aria-pressed="true"] {
+    background: var(--juice);
+    border-color: var(--juice);
+    color: var(--on-juice);
+  }
+  .td__node[aria-pressed="true"] .td__node-sub,
+  .td__node[aria-pressed="true"] .td__badge {
+    color: var(--on-juice);
+    border-color: color-mix(in srgb, var(--on-juice) 40%, transparent);
+  }
+  .td__node.is-lit {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--juice) 45%, transparent);
+    transform: translateY(-3px);
+  }
+  .td__node-title {
+    font-weight: 700;
+    font-size: 15px;
+    line-height: 1.2;
+  }
+  .td__node-sub {
+    font-size: 11.5px;
+    color: var(--graphite);
+    line-height: 1.35;
+  }
+  .td__badge {
+    position: absolute;
+    top: -11px;
+    left: 10px;
+    padding: 2px 6px;
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--r-chip);
+    background: var(--paper-2);
+    font-size: 10.5px;
+    color: var(--graphite);
+    line-height: 1.4;
+  }
+  .td__node[aria-pressed="true"] .td__badge {
+    background: var(--juice);
+  }
+
+  /* раскладка на широком экране */
+  .td__node--source { grid-area: 1 / 1; }
+  .td__node--fetch { grid-area: 1 / 2; }
+  .td__node--parse { grid-area: 1 / 3; }
+  .td__node--filter { grid-area: 1 / 4; }
+  .td__node--details { grid-area: 1 / 5; }
+  .td__node--store { grid-area: 1 / 6; }
+  .td__node--user { grid-area: 3 / 1; }
+  .td__node--bot { grid-area: 3 / 5; }
+  .td__node--api { grid-area: 3 / 6; }
+
+  /* стрелки верхнего ряда */
+  .td__node--source::after,
+  .td__node--fetch::after,
+  .td__node--parse::after,
+  .td__node--filter::after,
+  .td__node--details::after {
+    content: "";
+    position: absolute;
+    left: calc(100% + 1.5px);
+    top: 50%;
+    width: calc(var(--gap) - 3px);
+    height: 10px;
+    translate: 0 -50%;
+    background:
+      linear-gradient(var(--c, var(--ink)), var(--c, var(--ink))) left center / calc(100% - 7px) 1.5px no-repeat,
+      conic-gradient(from 225deg at 100% 50%, var(--c, var(--ink)) 0 90deg, transparent 0) right center / 7px 10px no-repeat;
+  }
+  .td__node.is-lit::after {
+    --c: var(--juice);
+  }
+
+  .td__wire {
+    position: relative;
+    z-index: 1;
+    display: block;
+    color: var(--ink);
+    transition: color 0.2s ease;
+  }
+  .td__wire.is-lit {
+    color: var(--juice);
+  }
+  .td__wire > span {
+    position: absolute;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--graphite);
+    white-space: nowrap;
+  }
+  /* вертикальные: push (вниз, пунктир) и SQL (в обе стороны) */
+  .td__wire--push,
+  .td__wire--sql {
+    justify-self: center;
+    width: 10px;
+    height: 100%;
+    background:
+      linear-gradient(currentColor, currentColor) center / 1.5px calc(100% - 14px) no-repeat;
+  }
+  .td__wire--push {
+    grid-area: 2 / 5;
+    background:
+      repeating-linear-gradient(currentColor 0 5px, transparent 5px 9px) center top / 1.5px calc(100% - 7px) no-repeat,
+      conic-gradient(from 135deg at 50% 100%, currentColor 0 90deg, transparent 0) center bottom / 10px 7px no-repeat;
+  }
+  .td__wire--sql {
+    grid-area: 2 / 6;
+    background:
+      linear-gradient(currentColor, currentColor) center / 1.5px calc(100% - 14px) no-repeat,
+      conic-gradient(from 135deg at 50% 100%, currentColor 0 90deg, transparent 0) center bottom / 10px 7px no-repeat,
+      conic-gradient(from -45deg at 50% 0%, currentColor 0 90deg, transparent 0) center top / 10px 7px no-repeat;
+  }
+  .td__wire--push > span,
+  .td__wire--sql > span {
+    left: calc(50% + 12px);
+    top: 50%;
+    translate: 0 -50%;
+  }
+  /* горизонтальные нижнего ряда */
+  .td__wire--user,
+  .td__wire--http {
+    align-self: center;
+    height: 10px;
+    background:
+      linear-gradient(currentColor, currentColor) center / calc(100% - 14px) 1.5px no-repeat,
+      conic-gradient(from 225deg at 100% 50%, currentColor 0 90deg, transparent 0) right center / 7px 10px no-repeat,
+      conic-gradient(from 45deg at 0% 50%, currentColor 0 90deg, transparent 0) left center / 7px 10px no-repeat;
+  }
+  .td__wire--user {
+    grid-area: 3 / 2 / 4 / 5;
+    margin-inline: calc(var(--gap) * -1 + 2px);
+  }
+  .td__wire--http {
+    grid-area: 3 / 5;
+    margin-left: calc(100% + 2px);
+    width: calc(var(--gap) - 4px);
+  }
+  .td__wire--user > span,
+  .td__wire--http > span {
+    left: 50%;
+    bottom: calc(100% + 6px);
+    translate: -50% 0;
+  }
+  .td__main {
+    grid-area: 2 / 2 / 3 / 5;
+    align-self: center;
+    font-size: 11.5px;
+    color: var(--graphite);
+  }
+
+  .td__frame {
+    grid-area: 1 / 2 / 4 / 7;
+    position: relative;
+    margin: -48px -14px -16px;
+    border: 1.5px dashed var(--rule-strong);
+    border-radius: 10px;
+    pointer-events: none;
+  }
+  .td__frame-tag {
+    position: absolute;
+    top: 12px;
+    left: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--graphite);
+    white-space: nowrap;
+    pointer-events: auto;
+    padding: 4px 8px 4px 6px;
+    margin: -4px -8px -4px -6px;
+    border-radius: var(--r-chip);
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  .td__frame-tag:hover {
+    color: var(--ink);
+  }
+  .td__frame-tag[aria-pressed="true"] {
+    background: var(--juice);
+    color: var(--on-juice);
+  }
+  .td__frame-tag :global(svg) {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* ---------- инспектор ---------- */
+  .td__inspector {
+    border-top: 1px solid var(--rule-strong);
+    background: var(--paper);
+  }
+  .td__panel {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 24px clamp(24px, 3vw, 48px);
+    padding: clamp(20px, 2.6vw, 32px);
+    min-height: 236px;
+  }
+  .td__panel[hidden] {
+    display: none;
+  }
+  .td__panel:not(:has(.td__code)) {
+    grid-template-columns: 1fr;
+  }
+  .td__panel-title {
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: -0.01em;
+  }
+  .td__panel-text {
+    margin-top: 8px;
+    color: var(--graphite);
+    max-width: 46ch;
+    font-size: 15.5px;
+  }
+  .td__file {
+    margin-top: 18px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .td__samples {
+    margin-top: 16px;
+    display: grid;
+    gap: 6px;
+  }
+  .td__sample {
+    display: grid;
+    grid-template-columns: 22px auto 1fr;
+    gap: 10px;
+    align-items: baseline;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .td__sample-mark {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: var(--r-chip);
+    font-size: 12px;
+    translate: 0 4px;
+  }
+  .is-pass .td__sample-mark {
+    background: var(--juice);
+    color: var(--on-juice);
+  }
+  .is-fail .td__sample-mark {
+    border: 1px solid var(--rule-strong);
+    color: var(--graphite);
+  }
+  .is-fail > span:nth-child(2) {
+    color: var(--graphite);
+    text-decoration: line-through;
+    text-decoration-color: var(--rule-strong);
+  }
+  .td__sample-why {
+    font-weight: 400;
+    font-size: 12.5px;
+    color: var(--graphite);
+  }
+  .td__code {
+    margin: 0;
+    padding: 18px 20px;
+    border-radius: var(--r-node);
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.65;
+    tab-size: 4;
+    align-self: start;
+  }
+  .td__code code {
+    font-size: inherit;
+  }
+  .td__code :global(.c) {
+    color: var(--graphite);
+  }
+  .td__code :global(.s) {
+    color: var(--juice-ink);
+  }
+  .td__code :global(.k) {
+    font-weight: 700;
+  }
+  .js .td__panel:not([hidden]) {
+    animation: panel-in 0.35s var(--ease-out);
+  }
+  @keyframes panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+
+  /* ---------- узкие экраны: вертикальный список ---------- */
+  @media (max-width: 1080px) {
+    .tracker__text,
+    .tracker__side {
+      grid-column: 1 / -1;
+    }
+    .counters {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .td__grid {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: none;
+      row-gap: 34px;
+      padding: 28px 20px 28px 36px;
+    }
+    .td__node {
+      grid-area: auto !important;
+      grid-row: var(--n) !important;
+      grid-column: 1 !important;
+      min-height: 0;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+    .td__node::after,
+    .td__node--store::after,
+    .td__node--api::after,
+    .td__node--bot::after {
+      content: "";
+      position: absolute;
+      left: 22px;
+      top: calc(100% + 1.5px);
+      width: 10px;
+      height: calc(34px - 3px);
+      translate: 0 0;
+      background:
+        linear-gradient(var(--c, var(--ink)), var(--c, var(--ink))) center top / 1.5px calc(100% - 7px) no-repeat,
+        conic-gradient(from 135deg at 50% 100%, var(--c, var(--ink)) 0 90deg, transparent 0) center bottom / 10px 7px no-repeat;
+    }
+    .td__node--user::after {
+      display: none;
+    }
+    .td__wire,
+    .td__main {
+      display: none;
+    }
+    .td__frame {
+      grid-area: auto;
+      grid-column: 1;
+      grid-row: 2 / 9;
+      margin: -40px -10px -14px -26px;
+    }
+    .td__frame-tag {
+      top: 10px;
+      left: auto;
+      right: 18px;
+    }
+    .td__node--fetch {
+      margin-top: 24px;
+    }
+    .td__badge {
+      position: static;
+      order: 3;
+      margin-top: 2px;
+    }
+    .td__panel {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 520px) {
+    .td__sample {
+      grid-template-columns: 22px 1fr;
+    }
+    .td__sample-why {
+      grid-column: 2;
+    }
+    .counters {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+    .counter__label {
+      font-size: 13.5px;
+    }
+  }
+</style>
+
+<script>
+  import "../scripts/tracker";
+</script>

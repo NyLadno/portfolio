@@ -1,0 +1,419 @@
+---
+import { stackGroups, stackBeside } from "../data/site";
+import { typo } from "../lib/typo";
+import Logo from "./Logo.astro";
+import Arrow from "./Arrow.astro";
+
+const nodes = [
+  { id: "request", title: "Запрос", sub: "GET /api/vacancies/{id}" },
+  { id: "handler", title: "Обработчик", sub: "net/http · ServeMux" },
+  { id: "logic", title: "Go", sub: "бизнес-логика" },
+  { id: "database", title: "База данных", sub: "database/sql · SQLite · PostgreSQL" },
+  { id: "response", title: "Ответ", sub: "JSON · 200 OK" },
+];
+---
+<section id="stack" class="section" aria-labelledby="stack-title">
+  <div class="wrap">
+    <header class="section-head">
+      <h2 id="stack-title">Чем я работаю</h2>
+      <p>{typo("Путь одного HTTP-запроса через мой стек. Каждый пункт ниже ведёт в файл, где это есть в коде.")}</p>
+    </header>
+
+    <figure class="flow" data-flow>
+      <figcaption class="visually-hidden">
+        Схема обработки запроса: запрос, обработчик на net/http, логика на Go, база данных, ответ в JSON. Обработчик, логика и база
+        упакованы в Docker.
+      </figcaption>
+      <div class="flow__frame" data-node-frame="docker">
+        <span class="flow__frame-tag"><Logo slug="docker" class="flow__frame-logo" />Docker · distroless</span>
+      </div>
+      <ol class="flow__list" role="list">
+        {nodes.map((n, i) => (
+          <li class:list={["flow__node", n.id === "logic" && "flow__node--core"]} data-node={n.id} role="listitem" style={`--n:${i}`}>
+            {n.id === "logic" ? (
+              <span class="flow__go">Go</span>
+            ) : (
+              <span class="flow__title">{n.title}</span>
+            )}
+            <span class="flow__sub mono">{n.sub}</span>
+          </li>
+        ))}
+      </ol>
+      <div class="flow__track" aria-hidden="true"><span class="flow__packet"></span></div>
+    </figure>
+
+    <div class="matrix">
+      {stackGroups.map((g) => (
+        <div class="matrix__group">
+          <h3 class="matrix__title">{g.title}</h3>
+          <p class="matrix__note">{g.note}</p>
+          <ul class="matrix__list">
+            {g.items.map((item) => (
+              <li class="matrix__item" data-links-node={item.node}>
+                <span class="matrix__name">
+                  {item.icon ? <Logo slug={item.icon} class="matrix__logo" /> : <span class="matrix__logo matrix__logo--none" />}
+                  {item.name}
+                </span>
+                <a class="matrix__proof mono" href={item.evidence.href} target="_blank" rel="noopener">
+                  {item.evidence.label}
+                  <Arrow />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+    <p class="beside">
+      <span class="beside__title">{stackBeside.title}</span>
+      <span>{typo(stackBeside.text)}</span>
+      <a class="matrix__proof mono" href={stackBeside.evidence.href} target="_blank" rel="noopener">{stackBeside.evidence.label}<Arrow /></a>
+    </p>
+  </div>
+</section>
+
+<style>
+  /* ---------- схема ---------- */
+  .flow {
+    --gap: clamp(28px, 3.4vw, 52px);
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1.15fr 1.25fr 1.45fr 1fr;
+    column-gap: var(--gap);
+    align-items: center;
+    padding: 64px 0 12px;
+  }
+  .flow__list {
+    display: contents;
+  }
+  .flow__node {
+    position: relative;
+    z-index: 1;
+    grid-row: 1;
+    grid-column: calc(var(--n) + 1);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 6px;
+    min-height: 132px;
+    padding: 16px 16px 16px;
+    border: 1.5px solid var(--ink);
+    border-radius: var(--r-node);
+    background: var(--paper);
+    transition:
+      border-color 0.25s ease,
+      box-shadow 0.25s ease,
+      transform 0.35s var(--ease-out);
+  }
+  .flow__node::after {
+    content: "";
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    width: var(--gap);
+    height: 10px;
+    translate: 0 -50%;
+    background:
+      linear-gradient(var(--ink), var(--ink)) left center / calc(100% - 7px) 1.5px no-repeat,
+      conic-gradient(from 225deg at 100% 50%, var(--ink) 0 90deg, transparent 0) right center / 7px 10px no-repeat;
+  }
+  .flow__node:last-child::after {
+    display: none;
+  }
+  .flow__title {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+  .flow__sub {
+    color: var(--graphite);
+    font-size: 12px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+  .flow__node--core {
+    min-height: 196px;
+    background: var(--juice);
+    border-color: var(--juice);
+    color: var(--on-juice);
+  }
+  .flow__node--core .flow__sub {
+    color: var(--on-juice);
+    opacity: 0.78;
+  }
+  .flow__go {
+    font-family: var(--font-display);
+    font-size: clamp(56px, 6.4vw, 96px);
+    line-height: 0.85;
+    letter-spacing: -0.03em;
+    translate: -0.04em 0;
+  }
+  .flow__frame {
+    grid-row: 1;
+    grid-column: 2 / 5;
+    align-self: stretch;
+    margin: -44px -16px -18px;
+    border: 1.5px dashed var(--rule-strong);
+    border-radius: 10px;
+    transition:
+      border-color 0.25s ease,
+      background-color 0.25s ease;
+  }
+  .flow__frame-tag {
+    position: absolute;
+    translate: 16px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--graphite);
+    white-space: nowrap;
+  }
+  :global(.flow__frame-logo) {
+    width: 16px;
+    height: 16px;
+  }
+  .flow__frame {
+    position: relative;
+  }
+  .flow__frame-tag {
+    top: 0;
+    left: 0;
+  }
+  .flow__track {
+    position: relative;
+    grid-row: 1;
+    grid-column: 1 / -1;
+    height: 0;
+    container-type: inline-size;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .flow__packet {
+    position: absolute;
+    display: block;
+    width: 10px;
+    height: 10px;
+    margin-top: -5px;
+    border-radius: 50%;
+    background: var(--juice);
+    box-shadow: 0 0 0 3px var(--paper);
+    opacity: 0;
+  }
+  .js .flow.is-in .flow__packet {
+    animation: packet 5.2s var(--ease-in-out) 0.6s infinite;
+  }
+  @keyframes packet {
+    0% {
+      transform: translateX(0);
+      opacity: 0;
+    }
+    6% {
+      opacity: 1;
+    }
+    58% {
+      transform: translateX(calc(100cqw - 10px));
+      opacity: 1;
+    }
+    64%,
+    100% {
+      transform: translateX(calc(100cqw - 10px));
+      opacity: 0;
+    }
+  }
+
+  /* подсветка узла при наведении на пункт матрицы */
+  .flow[data-active="request"] [data-node="request"],
+  .flow[data-active="handler"] [data-node="handler"],
+  .flow[data-active="database"] [data-node="database"],
+  .flow[data-active="response"] [data-node="response"] {
+    border-color: var(--juice);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--juice) 30%, transparent);
+    transform: translateY(-4px);
+  }
+  .flow[data-active="logic"] [data-node="logic"] {
+    transform: translateY(-4px);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--juice) 30%, transparent);
+  }
+  .flow[data-active="docker"] .flow__frame {
+    border-color: var(--juice);
+    background: color-mix(in srgb, var(--juice) 6%, transparent);
+  }
+
+  /* ---------- матрица ---------- */
+  .matrix {
+    display: grid;
+    grid-template-columns: 4fr 5fr 3fr;
+    gap: var(--col-gap);
+    margin-top: clamp(64px, 8vw, 112px);
+  }
+  .matrix__title {
+    font-size: var(--fs-h3);
+    letter-spacing: -0.02em;
+  }
+  .matrix__note {
+    margin-top: 4px;
+    color: var(--graphite);
+    font-size: var(--fs-label);
+  }
+  .matrix__list {
+    margin-top: 20px;
+    border-top: 1.5px solid var(--ink);
+  }
+  .matrix__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 52px;
+    padding-block: 10px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .matrix__name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 620;
+    font-size: 16px;
+    line-height: 1.25;
+  }
+  :global(.matrix__logo) {
+    width: 17px;
+    height: 17px;
+    flex: none;
+  }
+  .matrix__logo--none {
+    display: inline-block;
+    width: 17px;
+    height: 17px;
+    border: 1.5px solid currentColor;
+    border-radius: 3px;
+    scale: 0.7;
+  }
+  .matrix__proof {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex: none;
+    color: var(--graphite);
+    font-size: 12.5px;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .matrix__proof :global(.arrow) {
+    width: 11px;
+    height: 11px;
+    transition: transform 0.3s var(--ease-out);
+  }
+  .matrix__proof:hover {
+    color: var(--juice-ink);
+  }
+  .matrix__proof:hover :global(.arrow) {
+    transform: translate(2px, -2px);
+  }
+  .beside {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px 16px;
+    margin-top: 40px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--rule-strong);
+    color: var(--graphite);
+    font-size: 15px;
+  }
+  .beside__title {
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  @media (max-width: 1100px) {
+    .matrix {
+      grid-template-columns: 1fr 1fr;
+    }
+    .matrix__group:last-child {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 860px) {
+    .flow {
+      grid-template-columns: 1fr;
+      row-gap: 36px;
+      padding: 0 0 0 20px;
+    }
+    .flow__node {
+      grid-column: 1;
+      grid-row: calc(var(--n) + 1);
+      min-height: 0;
+      flex-direction: row;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .flow__node--core {
+      min-height: 0;
+      align-items: center;
+    }
+    .flow__go {
+      font-size: 52px;
+    }
+    .flow__node::after {
+      left: 28px;
+      top: 100%;
+      width: 10px;
+      height: 36px;
+      translate: 0 0;
+      background:
+        linear-gradient(var(--ink), var(--ink)) center top / 1.5px calc(100% - 7px) no-repeat,
+        conic-gradient(from 135deg at 50% 100%, var(--ink) 0 90deg, transparent 0) center bottom / 10px 7px no-repeat;
+    }
+    .flow__frame {
+      grid-column: 1;
+      grid-row: 2 / 5;
+      margin: -18px -12px -18px -20px;
+    }
+    .flow__frame-tag {
+      top: auto;
+      bottom: 100%;
+      left: auto;
+      right: 0;
+      translate: 0 -6px;
+    }
+    .flow__node[data-node="handler"] {
+      margin-top: 12px;
+    }
+    .flow__track {
+      display: none;
+    }
+    .matrix {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-flow]").forEach((flow) => {
+    const section = flow.closest("section");
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) flow.classList.add("is-in");
+        else flow.classList.remove("is-in");
+      },
+      { threshold: 0.35 },
+    );
+    io.observe(flow);
+    section?.querySelectorAll<HTMLElement>("[data-links-node]").forEach((item) => {
+      const node = item.dataset.linksNode;
+      if (!node) return;
+      const on = () => (flow.dataset.active = node);
+      const off = () => delete flow.dataset.active;
+      item.addEventListener("pointerenter", on);
+      item.addEventListener("pointerleave", off);
+      item.addEventListener("focusin", on);
+      item.addEventListener("focusout", off);
+    });
+  });
+</script>

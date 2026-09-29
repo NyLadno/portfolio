@@ -1,0 +1,182 @@
+---
+import { repos } from "../data/site";
+
+const nodes = [
+  { id: "api", title: "API", sub: "net/http", area: "api" },
+  { id: "sql", title: "SQL", sub: "database/sql", area: "sql" },
+  { id: "backend", title: "Backend", sub: "REST · JSON", area: "backend" },
+  { id: "docker", title: "Docker", sub: "distroless", area: "docker" },
+];
+---
+<figure class="map" data-parallax>
+  <figcaption class="visually-hidden">
+    Схема: Go в центре, от него связи к API на net/http, SQL, backend-сервисам и Docker.
+  </figcaption>
+  <div class="map__grid" aria-hidden="true">
+    <div class="map__core">
+      <span class="map__go">Go</span>
+      <span class="mono">go 1.27</span>
+    </div>
+    {nodes.map((n) => (
+      <div class="map__node" style={`grid-area:${n.area}`}>
+        <span class="map__title"><span class="dot"></span>{n.title}</span>
+        <span class="mono">{n.sub}</span>
+      </div>
+    ))}
+    <span class="wire wire--v" style="grid-area:w1" data-reveal="vline"></span>
+    <span class="wire wire--v" style="grid-area:w4" data-reveal="vline"></span>
+    <span class="wire wire--h" style="grid-area:w2" data-reveal="line"></span>
+    <span class="wire wire--h" style="grid-area:w3" data-reveal="line"></span>
+  </div>
+  <p class="map__legend">
+    <span class="dot" aria-hidden="true"></span>
+    <span>всё это работает в <a href={repos.tracker} target="_blank" rel="noopener">Internship Tracker</a></span>
+  </p>
+</figure>
+
+<style>
+  .map {
+    position: relative;
+    padding: clamp(20px, 3vw, 36px);
+    border: 1px solid var(--rule);
+    border-radius: var(--r-node);
+    background-color: var(--paper);
+    background-image: radial-gradient(circle at 1px 1px, var(--rule-strong) 1px, transparent 1.2px);
+    background-size: 18px 18px;
+    background-position: var(--bgx, 0px) var(--bgy, 0px);
+    overflow: hidden;
+  }
+  .map__grid {
+    display: grid;
+    grid-template-columns: auto minmax(20px, 1fr) auto minmax(20px, 1fr) auto;
+    grid-template-rows: auto 30px auto 30px auto;
+    grid-template-areas:
+      ".   .  api  .  ."
+      ".   .  w1   .  ."
+      "sql w2 core w3 backend"
+      ".   .  w4   .  ."
+      ".   .  docker . .";
+    align-items: center;
+    justify-items: center;
+    transform: translate3d(var(--px, 0px), var(--py, 0px), 0);
+    transition: transform 0.4s var(--ease-out);
+  }
+  .map__node,
+  .map__core {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 14px 11px;
+    border: 1.5px solid var(--ink);
+    border-radius: var(--r-node);
+    background: var(--paper);
+    min-width: 116px;
+  }
+  .map__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 680;
+    font-size: 15px;
+    line-height: 1.2;
+  }
+  .map__node .mono,
+  .map__core .mono {
+    color: var(--graphite);
+    font-size: 12px;
+  }
+  .map__core {
+    grid-area: core;
+    align-items: flex-start;
+    padding: 14px 20px 14px 18px;
+    background: var(--juice);
+    border-color: var(--juice);
+    color: var(--on-juice);
+  }
+  .map__core .mono {
+    color: var(--on-juice);
+    opacity: 0.8;
+  }
+  .map__go {
+    font-family: var(--font-display);
+    font-size: clamp(34px, 3.4vw, 46px);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .wire {
+    display: block;
+    background: var(--ink);
+  }
+  .wire--h {
+    width: 100%;
+    height: 1.5px;
+  }
+  .wire--v {
+    width: 1.5px;
+    height: 100%;
+  }
+  .js .wire--v[data-reveal="vline"] {
+    transform: scaleY(0);
+    transform-origin: center top;
+    transition: transform 0.7s var(--ease-out) 0.2s;
+  }
+  .js .wire--v[data-reveal="vline"].is-in {
+    transform: none;
+  }
+  .map__legend {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 22px;
+    font-size: 13.5px;
+    color: var(--graphite);
+  }
+  .map__legend a {
+    color: var(--ink);
+  }
+
+  @media (max-width: 480px) {
+    .map__node,
+    .map__core {
+      min-width: 0;
+      padding: 8px 10px 9px;
+    }
+    .map__title {
+      font-size: 14px;
+    }
+    .map__node .mono {
+      font-size: 11px;
+    }
+    .map__grid {
+      grid-template-columns: auto minmax(8px, 1fr) auto minmax(8px, 1fr) auto;
+    }
+  }
+</style>
+
+<script>
+  // лёгкий параллакс только при курсоре внутри карты: схема и точечная сетка двигаются в разные стороны
+  const map = document.querySelector<HTMLElement>("[data-parallax]");
+  const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (map && fine && !reduce) {
+    let raf = 0;
+    map.addEventListener("pointermove", (e) => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const r = map.getBoundingClientRect();
+        // −0.5…0.5 внутри карты
+        const dx = (e.clientX - (r.left + r.width / 2)) / r.width;
+        const dy = (e.clientY - (r.top + r.height / 2)) / r.height;
+        map.style.setProperty("--px", `${(dx * 12).toFixed(2)}px`);
+        map.style.setProperty("--py", `${(dy * 12).toFixed(2)}px`);
+        map.style.setProperty("--bgx", `${(-dx * 8).toFixed(2)}px`);
+        map.style.setProperty("--bgy", `${(-dy * 8).toFixed(2)}px`);
+      });
+    });
+    map.addEventListener("pointerleave", () => {
+      ["--px", "--py", "--bgx", "--bgy"].forEach((p) => map.style.setProperty(p, "0px"));
+    });
+  }
+</script>

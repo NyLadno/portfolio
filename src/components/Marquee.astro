@@ -1,0 +1,128 @@
+---
+import Logo from "./Logo.astro";
+
+const items: { name: string; logo?: string; mark?: "sql" | "lyceum" }[] = [
+  { name: "Go", logo: "go" },
+  { name: "Git", logo: "git" },
+  { name: "GitHub", logo: "github" },
+  { name: "Docker", logo: "docker" },
+  { name: "SQL", mark: "sql" },
+  { name: "PostgreSQL", logo: "postgresql" },
+  { name: "Яндекс Лицей", mark: "lyceum" },
+];
+// две копии дорожки → бесшовный цикл translateX(-50%)
+const copies = [0, 1];
+---
+<section class="marquee" aria-label="Технологии">
+  <ul class="visually-hidden">
+    {items.map((it) => <li>{it.name}</li>)}
+  </ul>
+  <div class="marquee__viewport" aria-hidden="true">
+    <div class="marquee__track">
+      {copies.map(() => (
+        <ul class="marquee__group">
+          {items.map((it) => (
+            <li class="marquee__item">
+              {it.logo && <Logo slug={it.logo} class="marquee__logo" />}
+              {it.mark === "sql" && <span class="marquee__sql">SELECT</span>}
+              {it.mark === "lyceum" ? (
+                <span class="marquee__lyceum"></span>
+              ) : (
+                <span>{it.name}</span>
+              )}
+              <span class="marquee__sep"></span>
+            </li>
+          ))}
+        </ul>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .marquee {
+    position: relative;
+    border-block: 1px solid var(--rule);
+    overflow: hidden;
+  }
+  .marquee__viewport {
+    padding-block: clamp(18px, 2.4vw, 30px);
+    mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  }
+  .marquee__track {
+    display: flex;
+    width: max-content;
+    animation: marquee 38s linear infinite;
+  }
+  .marquee:hover .marquee__track,
+  .marquee:focus-within .marquee__track {
+    animation-play-state: paused;
+  }
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  .marquee__group {
+    display: flex;
+    flex: none;
+  }
+  .marquee__item {
+    display: flex;
+    align-items: center;
+    gap: 0.42em;
+    font-size: clamp(24px, 3.4vw, 46px);
+    font-weight: 680;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  :global(.marquee__logo) {
+    width: 0.78em;
+    height: 0.78em;
+  }
+  .marquee__sql {
+    font-family: var(--font-mono);
+    font-size: 0.36em;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 0.35em 0.45em;
+    border: 1.5px solid currentColor;
+    border-radius: var(--r-chip);
+    transform: translateY(-0.05em);
+  }
+  .marquee__lyceum {
+    display: block;
+    width: 4.3em;
+    height: 0.63em;
+    background: currentColor;
+    mask: url("/brand/yandex-lyceum.png") left center / contain no-repeat;
+    -webkit-mask: url("/brand/yandex-lyceum.png") left center / contain no-repeat;
+  }
+  .marquee__sep {
+    width: 0.22em;
+    height: 0.22em;
+    margin-inline: 0.85em;
+    border-radius: 50%;
+    background: var(--juice);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .marquee__track {
+      animation: none;
+      width: auto;
+    }
+    .marquee__group {
+      flex-wrap: wrap;
+      row-gap: 14px;
+      padding-inline: var(--gutter);
+    }
+    .marquee__group + .marquee__group {
+      display: none;
+    }
+    .marquee__viewport {
+      mask-image: none;
+    }
+  }
+</style>
+

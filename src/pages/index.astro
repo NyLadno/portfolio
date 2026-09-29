@@ -1,0 +1,70 @@
+---
+import Base from "../layouts/Base.astro";
+import Nav from "../components/Nav.astro";
+import Hero from "../components/Hero.astro";
+import Marquee from "../components/Marquee.astro";
+import Stack from "../components/Stack.astro";
+import Projects from "../components/Projects.astro";
+import Certificates from "../components/Certificates.astro";
+import Timeline from "../components/Timeline.astro";
+import Contact from "../components/Contact.astro";
+import Board from "../components/Board.astro";
+import { links } from "../data/site";
+---
+<Base
+  title="Андреев Александр — Go Developer"
+  description="Портфолио backend-разработчика на Go: REST API, SQL, Docker, Telegram. Ищу стажировку в backend / Go."
+>
+  <Nav />
+  <main id="main">
+    <Hero />
+    <Marquee />
+    <Certificates />
+    <Stack />
+    <Projects />
+    <Timeline />
+    <Contact />
+    <Board />
+  </main>
+  <footer class="footer">
+    <div class="wrap footer__inner">
+      <p>© 2026 Андреев Александр</p>
+      <ul>
+        <li><a href={links.github} target="_blank" rel="noopener">GitHub</a></li>
+        <li><a href={links.telegram} target="_blank" rel="noopener">Telegram</a></li>
+        <li><a href={`mailto:${links.email}`}>{links.email}</a></li>
+      </ul>
+    </div>
+  </footer>
+</Base>
+
+<style>
+  .footer {
+    border-top: 1px solid var(--rule);
+    font-size: 13.5px;
+    color: var(--graphite);
+  }
+  .footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px 24px;
+    padding-block: 28px 36px;
+  }
+  .footer ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+  }
+  .footer a {
+    text-decoration: none;
+  }
+  .footer a:hover {
+    color: var(--ink);
+    text-decoration: underline;
+  }
+</style>
+
+<script>
+  import "../scripts/reveal";
+</script>

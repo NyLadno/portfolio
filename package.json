@@ -1,0 +1,28 @@
+{
+  "name": "andreev-portfolio",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "assets": "python tools/prepare_assets.py",
+    "data:github": "node tools/fetch_github.mjs"
+  },
+  "dependencies": {
+    "@astrojs/preact": "^6.0.5",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.3.5",
+    "clsx": "^2.1.1",
+    "preact": "^10.29.8",
+    "sharp": "^0.35.5",
+    "simple-icons": "^16.33.0",
+    "tailwind-merge": "^3.7.0",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "typescript": "^6.0.3"
+  }
+}

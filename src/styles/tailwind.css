@@ -1,0 +1,9 @@
+/* Tailwind нужен только компоненту Aceternity 3D Card: без preflight и без автосканирования проекта,
+   чтобы утилиты не пересекались с собственными классами сайта. */
+@layer theme, base, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+
+@source "../components/ui/3d-card.tsx";
+@source "../components/CertificateCard.tsx";

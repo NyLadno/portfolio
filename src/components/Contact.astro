@@ -1,0 +1,128 @@
+---
+import { links } from "../data/site";
+import { typo } from "../lib/typo";
+import Logo from "./Logo.astro";
+---
+<section id="contact" class="section contact" aria-labelledby="contact-title">
+  <div class="wrap contact__grid">
+    <h2 id="contact-title" class="contact__title">
+      {typo("Ищу возможность начать работать с backend и Go в реальной команде.")}
+    </h2>
+    <div class="contact__side">
+      <p class="contact__note">{typo("Готов показать код, рассказать, как устроены проекты, и разобраться в вашем стеке.")}</p>
+      <ul class="contact__actions">
+        <li>
+          <a class="btn btn--solid" href={links.github} target="_blank" rel="noopener">
+            <Logo slug="github" />GitHub
+          </a>
+        </li>
+        <li>
+          <a class="btn" href={links.telegram} target="_blank" rel="noopener">
+            <Logo slug="telegram" />Telegram
+          </a>
+        </li>
+        <li>
+          <a class="btn" href={`mailto:${links.email}`}>
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true" focusable="false">
+              <rect x="2.5" y="4.5" width="15" height="11" rx="1" /><path d="m3 5 7 6 7-6" />
+            </svg>
+            Написать на почту
+          </a>
+        </li>
+      </ul>
+      <p class="contact__email">
+        <span class="mono">{links.email}</span>
+        <button class="copy" type="button" data-copy={links.email} aria-live="polite">Скопировать адрес</button>
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .contact {
+    padding-bottom: clamp(64px, 8vw, 112px);
+  }
+  .contact__grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--col-gap);
+    row-gap: 40px;
+    align-items: end;
+  }
+  .contact__title {
+    grid-column: 1 / span 8;
+    font-size: clamp(34px, 5vw, 68px);
+    letter-spacing: -0.035em;
+    line-height: 1.02;
+  }
+  .contact__side {
+    grid-column: 9 / -1;
+  }
+  .contact__note {
+    color: var(--graphite);
+    font-size: 15.5px;
+    max-width: 34ch;
+  }
+  .contact__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 24px;
+  }
+  .contact__actions :global(svg) {
+    width: 18px;
+    height: 18px;
+  }
+  .contact__email {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    margin-top: 18px;
+    color: var(--graphite);
+  }
+  .contact__email .mono {
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .copy {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--graphite);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.25em;
+  }
+  .copy:hover {
+    color: var(--ink);
+  }
+  .copy.is-done {
+    color: var(--juice-ink);
+    text-decoration: none;
+  }
+  @media (max-width: 960px) {
+    .contact__title,
+    .contact__side {
+      grid-column: 1 / -1;
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>("[data-copy]").forEach((btn) => {
+    const initial = btn.textContent;
+    btn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(btn.dataset.copy ?? "");
+        btn.textContent = "Скопировано";
+      } catch {
+        btn.textContent = "Не получилось — выделите адрес вручную";
+      }
+      btn.classList.add("is-done");
+      window.setTimeout(() => {
+        btn.textContent = initial;
+        btn.classList.remove("is-done");
+      }, 2200);
+    });
+  });
+</script>

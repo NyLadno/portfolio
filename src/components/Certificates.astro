@@ -1,0 +1,157 @@
+---
+import { getImage } from "astro:assets";
+import { typo } from "../lib/typo";
+import CertificateCard, { type CertificateProps } from "./CertificateCard";
+import goCert from "../assets/certificates/go-1-yandex-lyceum.png";
+import pyCert from "../assets/certificates/python-kod-budushchego.png";
+
+async function responsive(src: ImageMetadata, sizes: string, widths: number[]) {
+  const img = await getImage({ src, widths, sizes, format: "webp", quality: 82 });
+  return {
+    src: img.src,
+    srcSet: img.srcSet.attribute,
+    sizes,
+    width: src.width,
+    height: src.height,
+  };
+}
+
+const certs: CertificateProps[] = [
+  {
+    image: await responsive(goCert, "(max-width: 860px) 92vw, 34vw", [360, 560, 820]),
+    alt: "Сертификат Яндекс Лицея: Андреев Александр Андреевич успешно освоил самостоятельный курс «Go-1: шаг за шагом», № 2522229158 от 13.12.2025.",
+    kicker: "Яндекс Лицей · self-paced",
+    title: "Go: шаг за шагом",
+    facts: [
+      { label: "Выдан", value: "13.12.2025" },
+      { label: "Номер", value: "2522229158" },
+    ],
+    pdf: "/certificates/go-1-yandex-lyceum.pdf",
+    orientation: "portrait",
+  },
+  {
+    image: await responsive(pyCert, "(max-width: 860px) 92vw, 52vw", [480, 800, 1200]),
+    alt: "Сертификат Яндекса и программы «Код будущего»: Андреев Александр Андреевич прошёл обучение по программе «Продвинутый курс Python от Яндекса — визуализация и анализ данных», 1 октября 2023 — 31 мая 2024, регистрационный номер 1579844.",
+    kicker: "Яндекс Лицей × Код будущего",
+    title: "Продвинутый Python: визуализация и анализ данных",
+    facts: [
+      { label: "Обучение", value: "окт 2023 — май 2024" },
+      { label: "Номер", value: "1579844" },
+    ],
+    pdf: "/certificates/python-kod-budushchego.pdf",
+    orientation: "landscape",
+  },
+];
+---
+<section id="certificates" class="section" aria-labelledby="cert-title">
+  <div class="wrap">
+    <header class="section-head">
+      <h2 id="cert-title">Яндекс Лицей</h2>
+      <p>{typo("Два курса — два языка. Сначала Python, потом Go, на котором теперь пишу проекты.")}</p>
+    </header>
+    <div class="certs">
+      <div class="certs__item certs__item--portrait">
+        <CertificateCard client:visible {...certs[0]} />
+      </div>
+      <div class="certs__item certs__item--landscape">
+        <CertificateCard client:visible {...certs[1]} />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .certs {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--col-gap);
+    row-gap: 48px;
+    align-items: end;
+  }
+  .certs__item--portrait {
+    grid-column: 1 / span 5;
+  }
+  .certs__item--landscape {
+    grid-column: 6 / -1;
+  }
+  @media (max-width: 860px) {
+    .certs__item--portrait,
+    .certs__item--landscape {
+      grid-column: 1 / -1;
+    }
+    .certs__item--portrait {
+      max-width: 460px;
+    }
+  }
+</style>
+
+<style is:global>
+  /* стили внутренностей острова (разметка Preact не получает scoped-атрибуты Astro) */
+  .cert-scene {
+    perspective: 1200px;
+  }
+  .cert__body {
+    padding: clamp(14px, 1.6vw, 20px);
+    border: 1.5px solid var(--ink);
+    border-radius: var(--r-card);
+    background: var(--paper-2);
+    transition:
+      box-shadow 0.3s var(--ease-out),
+      background-color 0.45s ease;
+  }
+  .cert:hover .cert__body {
+    box-shadow: var(--shadow);
+  }
+  .cert__media {
+    border-radius: 3px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 0 0 1px var(--rule);
+  }
+  .cert__media img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  [data-theme="dark"] .cert__media img {
+    filter: brightness(0.92);
+  }
+  .cert__caption {
+    display: grid;
+    gap: 6px;
+    margin-top: 20px;
+  }
+  .cert__kicker {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--juice-ink);
+  }
+  .cert__title {
+    font-size: clamp(20px, 1.8vw, 26px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.12;
+    text-wrap: balance;
+  }
+  .cert__facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 28px;
+    margin-top: 8px;
+    font-size: 14px;
+  }
+  .cert__facts dt {
+    color: var(--graphite);
+    font-size: 12.5px;
+  }
+  .cert__facts dd {
+    margin: 0;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .cert__link {
+    margin-top: 10px;
+    justify-self: start;
+    font-size: 15px;
+  }
+</style>

@@ -1,0 +1,159 @@
+---
+import { timeline } from "../data/site";
+import { typo } from "../lib/typo";
+---
+<section id="path" class="section" aria-labelledby="path-title">
+  <div class="wrap">
+    <header class="section-head">
+      <h2 id="path-title">Как я развивался</h2>
+      <p>{typo("От курса к курсу, от задачи к проекту, от проекта к сервису, которым пользуюсь сам.")}</p>
+    </header>
+    <div class="tl">
+      <span class="tl__line" data-reveal="line" aria-hidden="true"></span>
+      <ol class="tl__list">
+      {timeline.map((step, i) => (
+        <li class:list={["tl__step", step.now && "tl__step--now"]} style={`--i:${i}`}>
+          <span class="tl__dot" aria-hidden="true"></span>
+          <p class="tl__date">{step.date}</p>
+          <h3 class="tl__title">{step.title}</h3>
+          <p class="tl__text">{typo(step.text)}</p>
+        </li>
+      ))}
+      </ol>
+    </div>
+  </div>
+</section>
+
+<style>
+  .tl {
+    position: relative;
+  }
+  .tl__list {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    column-gap: var(--col-gap);
+    padding-top: 8px;
+  }
+  .tl__line {
+    position: absolute;
+    top: 22px;
+    left: 0;
+    right: 0;
+    height: 1.5px;
+    background: linear-gradient(90deg, var(--ink) 0 84%, var(--juice) 96%);
+  }
+  .tl__step {
+    position: relative;
+    padding-top: 36px;
+    padding-right: 8px;
+  }
+  .tl__dot {
+    position: absolute;
+    top: 7px;
+    left: 0;
+    width: 15px;
+    height: 15px;
+    border: 1.5px solid var(--ink);
+    border-radius: 50%;
+    background: var(--paper);
+  }
+  .tl__step--now .tl__dot {
+    border-color: var(--juice);
+    background: var(--juice);
+    animation: now-pulse 2.4s var(--ease-out) infinite;
+  }
+  @keyframes now-pulse {
+    0% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--juice) 55%, transparent);
+    }
+    70%,
+    100% {
+      box-shadow: 0 0 0 12px color-mix(in srgb, var(--juice) 0%, transparent);
+    }
+  }
+  .tl__date {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--graphite);
+    font-variant-numeric: tabular-nums;
+  }
+  .tl__title {
+    margin-top: 10px;
+    font-size: clamp(19px, 1.6vw, 23px);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+  .tl__text {
+    margin-top: 8px;
+    font-size: 14.5px;
+    color: var(--graphite);
+    max-width: 24ch;
+  }
+  .tl__step--now .tl__date {
+    color: var(--juice-ink);
+  }
+  .tl__step--now .tl__title {
+    display: inline;
+    background: var(--juice);
+    color: var(--on-juice);
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    padding: 0 6px;
+    margin-left: -6px;
+  }
+
+  /* шаги проявляются следом за линией */
+  :global(.js) .tl__step {
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity 0.5s ease,
+      transform 0.6s var(--ease-out);
+    transition-delay: calc(var(--i) * 110ms + 150ms);
+  }
+  :global(.js) .tl:has(.tl__line.is-in) .tl__step {
+    opacity: 1;
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :global(.js) .tl__step {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @media (max-width: 960px) {
+    .tl__list {
+      grid-template-columns: 1fr;
+      row-gap: 32px;
+      padding-left: 36px;
+      padding-top: 0;
+    }
+    .tl__line {
+      top: 6px;
+      bottom: 6px;
+      left: 7px;
+      right: auto;
+      width: 1.5px;
+      height: auto;
+      background: linear-gradient(180deg, var(--ink) 0 84%, var(--juice) 96%);
+      transform-origin: center top;
+    }
+    :global(.js) .tl__line[data-reveal="line"] {
+      transform: scaleY(0);
+    }
+    :global(.js) .tl__line[data-reveal="line"].is-in {
+      transform: none;
+    }
+    .tl__step {
+      padding-top: 0;
+    }
+    .tl__dot {
+      top: 3px;
+      left: -36px;
+    }
+    .tl__text {
+      max-width: 40ch;
+    }
+  }
+</style>

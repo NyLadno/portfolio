@@ -1,0 +1,263 @@
+---
+// Финальное табло: единственный «аэропортовый» элемент сайта.
+// В HTML сразу лежит итоговое состояние (для no-JS и reduced motion), скрипт прокручивает барабаны.
+import { typo } from "../lib/typo";
+
+const rows = [
+  { num: " 0", unit: "YEARS", status: "     " },
+  { num: " 0", unit: "DAYS ", status: "     " },
+  { num: " 0", unit: "HOURS", status: "READY" },
+];
+const cell = (ch: string) => (ch === " " ? " " : ch);
+---
+<section class="finale" aria-labelledby="finale-title">
+  <div class="wrap">
+    <h2 id="finale-title" class="visually-hidden">Коммерческий опыт</h2>
+    <div class="finale__stage">
+    <button class="icon-btn finale__replay" type="button" data-board-replay aria-label="Прокрутить табло ещё раз" title="Прокрутить ещё раз">
+      <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M16 10a6 6 0 1 1-1.8-4.3M16.2 3.2v3.4h-3.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" /></svg>
+    </button>
+    <figure class="board" data-board>
+      <div class="board__head" aria-hidden="true">
+        <span class="board__h board__h--main">Коммерческий опыт <em>Commercial experience</em></span>
+        <span class="board__h board__h--status">Статус <em>Status</em></span>
+      </div>
+      <p class="visually-hidden">Коммерческий опыт: 0 лет, 0 дней, 0 часов. Статус: готов.</p>
+      <div class="board__rows" aria-hidden="true">
+        {rows.map((row, r) => (
+          <div class="board__row">
+            <span class="board__group board__group--num">
+              {[...row.num].map((ch, i) => (
+                <span class="flap flap--num" data-flap data-kind="num" data-target={ch} style={`--r:${r};--c:${i}`}>
+                  <span class="flap__half flap__half--top"><span>{cell(ch)}</span></span>
+                  <span class="flap__half flap__half--bottom"><span>{cell(ch)}</span></span>
+                  <span class="flap__leaf flap__leaf--top"><span>{cell(ch)}</span></span>
+                  <span class="flap__leaf flap__leaf--bottom"><span>{cell(ch)}</span></span>
+                </span>
+              ))}
+            </span>
+            <span class="board__group">
+              {[...row.unit].map((ch, i) => (
+                <span class="flap" data-flap data-kind="alpha" data-target={ch} style={`--r:${r};--c:${i + 2}`}>
+                  <span class="flap__half flap__half--top"><span>{cell(ch)}</span></span>
+                  <span class="flap__half flap__half--bottom"><span>{cell(ch)}</span></span>
+                  <span class="flap__leaf flap__leaf--top"><span>{cell(ch)}</span></span>
+                  <span class="flap__leaf flap__leaf--bottom"><span>{cell(ch)}</span></span>
+                </span>
+              ))}
+            </span>
+            <span class="board__group board__group--status">
+              {[...row.status].map((ch, i) => (
+                <span class="flap flap--status" data-flap data-kind="status" data-target={ch} style={`--r:${r};--c:${i + 7}`}>
+                  <span class="flap__half flap__half--top"><span>{cell(ch)}</span></span>
+                  <span class="flap__half flap__half--bottom"><span>{cell(ch)}</span></span>
+                  <span class="flap__leaf flap__leaf--top"><span>{cell(ch)}</span></span>
+                  <span class="flap__leaf flap__leaf--bottom"><span>{cell(ch)}</span></span>
+                </span>
+              ))}
+              <span class:list={["board__lamp", row.status.trim() && "is-on"]}></span>
+            </span>
+          </div>
+        ))}
+      </div>
+    </figure>
+    </div>
+    <div class="finale__foot">
+      <p class="finale__line">{typo("Возможно, ваша компания станет первой.")}</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .finale {
+    padding-block: clamp(24px, 4vw, 56px) clamp(88px, 11vw, 160px);
+  }
+  .board {
+    --cw: clamp(21px, 5.5vw, 80px);
+    --ch: calc(var(--cw) * 1.38);
+    --cell-gap: clamp(2px, 0.4vw, 5px);
+    --group-gap: clamp(8px, 2.2vw, 30px);
+    --board: #121110;
+    --flap: #22211e;
+    --flap-hi: #2a2926;
+    --glyph: #f3efe6;
+    --muted: #8c887e;
+    padding: clamp(14px, 2.6vw, 36px);
+    border-radius: 12px;
+    background: var(--board);
+    box-shadow:
+      inset 0 0 0 1px #2c2b27,
+      inset 0 2px 0 #26251f,
+      0 30px 60px -36px rgb(0 0 0 / 0.55);
+    width: fit-content;
+    max-width: 100%;
+    color: var(--glyph);
+  }
+  .board__head {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: clamp(10px, 1.6vw, 20px);
+    font-size: clamp(10px, 1.1vw, 13px);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .board__h em {
+    display: block;
+    margin-top: 2px;
+    font-style: normal;
+    font-weight: 500;
+    opacity: 0.7;
+  }
+  .board__h--status {
+    width: calc(var(--cw) * 5 + var(--cell-gap) * 4 + var(--cw) * 0.5);
+  }
+  .board__rows {
+    display: grid;
+    gap: clamp(4px, 0.7vw, 9px);
+  }
+  .board__row {
+    display: flex;
+    gap: var(--group-gap);
+  }
+  .board__group {
+    display: flex;
+    align-items: center;
+    gap: var(--cell-gap);
+  }
+  .board__lamp {
+    width: calc(var(--cw) * 0.18);
+    height: calc(var(--cw) * 0.18);
+    margin-left: calc(var(--cw) * 0.16);
+    border-radius: 50%;
+    background: #33312c;
+    transition:
+      background-color 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+  .board__lamp.is-on {
+    background: var(--juice);
+    box-shadow: 0 0 calc(var(--cw) * 0.2) color-mix(in srgb, var(--juice) 60%, transparent);
+  }
+  .board[data-state="spinning"] .board__lamp.is-on {
+    background: #33312c;
+    box-shadow: none;
+  }
+
+  /* ---------- ячейка split-flap ---------- */
+  .flap {
+    position: relative;
+    display: block;
+    width: var(--cw);
+    height: var(--ch);
+    perspective: calc(var(--cw) * 5);
+    font-family: var(--font-display);
+    font-size: calc(var(--cw) * 0.82);
+    line-height: 1;
+    color: var(--glyph);
+  }
+  .flap--num {
+    color: var(--juice);
+  }
+  .flap::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: max(1px, calc(var(--cw) * 0.025));
+    translate: 0 -50%;
+    background: #0c0b0a;
+    z-index: 4;
+  }
+  .flap__half,
+  .flap__leaf {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 50%;
+    overflow: hidden;
+    background: var(--flap);
+    backface-visibility: hidden;
+  }
+  .flap__half--top,
+  .flap__leaf--top {
+    top: 0;
+    border-radius: calc(var(--cw) * 0.08) calc(var(--cw) * 0.08) 0 0;
+    background: linear-gradient(180deg, var(--flap-hi), var(--flap));
+  }
+  .flap__half--bottom,
+  .flap__leaf--bottom {
+    bottom: 0;
+    border-radius: 0 0 calc(var(--cw) * 0.08) calc(var(--cw) * 0.08);
+    background: linear-gradient(180deg, #1d1c1a, #191816);
+  }
+  .flap__half > span,
+  .flap__leaf > span {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 200%;
+    display: grid;
+    place-items: center;
+    padding-top: calc(var(--cw) * 0.06);
+  }
+  .flap__half--top > span,
+  .flap__leaf--top > span {
+    top: 0;
+  }
+  .flap__half--bottom > span,
+  .flap__leaf--bottom > span {
+    bottom: 0;
+  }
+  .flap__leaf {
+    z-index: 2;
+    will-change: transform;
+  }
+  .flap__leaf--top {
+    transform-origin: 50% 100%;
+  }
+  .flap__leaf--bottom {
+    transform-origin: 50% 0%;
+    transform: rotateX(90deg);
+  }
+
+  .finale__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: 20px 32px;
+    margin-top: clamp(28px, 4vw, 48px);
+  }
+  .finale__line {
+    font-size: clamp(30px, 4.4vw, 60px);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 1.02;
+    max-width: 18ch;
+    text-wrap: balance;
+  }
+  .finale__stage {
+    position: relative;
+    width: fit-content;
+    max-width: 100%;
+    padding-top: 56px;
+  }
+  .finale__replay {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .finale__replay {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import "../scripts/board";
+</script>
