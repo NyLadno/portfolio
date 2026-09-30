@@ -4,8 +4,9 @@ import preact from "@astrojs/preact";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
-  // Сайт-пользователь: репозиторий NyLadno.github.io отдаётся с корня, поэтому base не нужен.
+  // Проектный сайт: https://nyladno.github.io/portfolio/
   site: "https://nyladno.github.io",
+  base: "/portfolio",
   integrations: [preact({ compat: true })],
   vite: {
     plugins: [tailwindcss()],
