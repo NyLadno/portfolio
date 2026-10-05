@@ -4,6 +4,7 @@ import { typo } from "../lib/typo";
 import HeroMap from "./HeroMap.astro";
 import Arrow from "./Arrow.astro";
 
+const cv = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/Andreev_Aleksandr_CV_GOST.pdf`;
 const rows = person.roleRows.map((role, r) => ({ role: [...role], name: [...person.nameRows[r]] }));
 ---
 <section id="about" class="hero wrap" aria-labelledby="hero-title">
@@ -28,6 +29,7 @@ const rows = person.roleRows.map((role, r) => ({ role: [...role], name: [...pers
     <ul class="hero__links">
       <li><a class="link-arrow" href={links.github} target="_blank" rel="noopener">GitHub <Arrow /></a></li>
       <li><a class="link-arrow" href={links.telegram} target="_blank" rel="noopener">Telegram <Arrow /></a></li>
+      <li><a class="link-arrow" href={cv} target="_blank" rel="noopener">CV (PDF) <Arrow /></a></li>
     </ul>
   </div>
   </div>
