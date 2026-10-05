@@ -10,6 +10,7 @@ const items: { name: string; logo?: string; mark?: "sql" | "lyceum" }[] = [
   { name: "PostgreSQL", logo: "postgresql" },
   { name: "Яндекс Лицей", mark: "lyceum" },
 ];
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 // две копии дорожки → бесшовный цикл translateX(-50%)
 const copies = [0, 1];
 ---
@@ -26,7 +27,7 @@ const copies = [0, 1];
               {it.logo && <Logo slug={it.logo} class="marquee__logo" />}
               {it.mark === "sql" && <span class="marquee__sql">SELECT</span>}
               {it.mark === "lyceum" ? (
-                <span class="marquee__lyceum"></span>
+                <span class="marquee__lyceum" style={`--mask:url(${base}/brand/yandex-lyceum.png)`}></span>
               ) : (
                 <span>{it.name}</span>
               )}
@@ -96,8 +97,8 @@ const copies = [0, 1];
     width: 4.3em;
     height: 0.63em;
     background: currentColor;
-    mask: url("/brand/yandex-lyceum.png") left center / contain no-repeat;
-    -webkit-mask: url("/brand/yandex-lyceum.png") left center / contain no-repeat;
+    mask: var(--mask) left center / contain no-repeat;
+    -webkit-mask: var(--mask) left center / contain no-repeat;
   }
   .marquee__sep {
     width: 0.22em;

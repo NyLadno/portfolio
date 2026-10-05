@@ -16,6 +16,7 @@ async function responsive(src: ImageMetadata, sizes: string, widths: number[]) {
   };
 }
 
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const certs: CertificateProps[] = [
   {
     image: await responsive(goCert, "(max-width: 860px) 92vw, 34vw", [360, 560, 820]),
@@ -26,7 +27,7 @@ const certs: CertificateProps[] = [
       { label: "Выдан", value: "13.12.2025" },
       { label: "Номер", value: "2522229158" },
     ],
-    pdf: `${import.meta.env.BASE_URL}/certificates/go-1-yandex-lyceum.pdf`,
+    pdf: `${base}/certificates/go-1-yandex-lyceum.pdf`,
     orientation: "portrait",
   },
   {
@@ -38,7 +39,7 @@ const certs: CertificateProps[] = [
       { label: "Обучение", value: "окт 2023 — май 2024" },
       { label: "Номер", value: "1579844" },
     ],
-    pdf: `${import.meta.env.BASE_URL}/certificates/python-kod-budushchego.pdf`,
+    pdf: `${base}/certificates/python-kod-budushchego.pdf`,
     orientation: "landscape",
   },
 ];
